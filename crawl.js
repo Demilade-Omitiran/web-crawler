@@ -22,12 +22,17 @@ function getUrlsFromHtml(htmlDoc, baseURL) {
   return hrefLinks;
 }
 
-async function crawlPage(url) {
+async function getHtmlTextFromUrl(url) {
   try {
     const response = await fetch(url, {
       method: "GET",
       mode: "cors",
     });
+
+    if (response.status >= 400) {
+      console.log(`Couldn't crawl ${url}`);
+      return;
+    }
 
     if (!response.headers.get("content-type").includes("text/html")) {
       console.log("Content-Type must be text/html");
@@ -36,10 +41,48 @@ async function crawlPage(url) {
 
     const pageText = await response.text();
 
-    console.log(pageText);
+    return pageText
   } catch (error) {
     console.log(`Couldn't crawl ${url}`);
+    return "";
   }
+}
+
+async function crawlPage(baseURL, currentURL, pages = {}) {
+  if (!currentURL.includes(baseURL)) {
+    return pages;
+  }
+
+  const normalizedCurrentURL = normalizeURL(currentURL);
+
+  if (pages[normalizedCurrentURL]) {
+    pages[normalizedCurrentURL]++;
+    return pages;
+  } else {
+    pages[normalizedCurrentURL] = 1;
+  }
+
+  const htmlText = await getHtmlTextFromUrl(currentURL);
+  const urls = getUrlsFromHtml(htmlText, baseURL);
+
+  for (let i = 0; i < urls.length; i++) {
+    const urlIsBaseURL = normalizeURL(urls[i]) == normalizeURL(baseURL);
+    const urlIsCurrentURL = normalizeURL(urls[i]) == normalizedCurrentURL;
+
+    if (urlIsBaseURL) {
+      pages[normalizeURL(baseURL)]++;
+      continue;
+    }
+
+    if (urlIsCurrentURL) {
+      pages[normalizedCurrentURL]++;
+      continue;
+    }
+
+    pages = await crawlPage(baseURL, urls[i], pages);
+  }
+
+  return pages;
 }
 
 export { normalizeURL, getUrlsFromHtml, crawlPage };

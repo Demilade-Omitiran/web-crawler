@@ -12,7 +12,8 @@ async function main() {
     console.log(`crawler starting at ${url}`);
   }
 
-  await crawlPage(url);
+  const pages = await crawlPage(url, url);
+  console.log(pages);
 }
 
 main();
