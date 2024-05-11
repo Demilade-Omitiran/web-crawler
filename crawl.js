@@ -22,4 +22,24 @@ function getUrlsFromHtml(htmlDoc, baseURL) {
   return hrefLinks;
 }
 
-export { normalizeURL, getUrlsFromHtml };
+async function crawlPage(url) {
+  try {
+    const response = await fetch(url, {
+      method: "GET",
+      mode: "cors",
+    });
+
+    if (!response.headers.get("content-type").includes("text/html")) {
+      console.log("Content-Type must be text/html");
+      return;
+    }
+
+    const pageText = await response.text();
+
+    console.log(pageText);
+  } catch (error) {
+    console.log(`Couldn't crawl ${url}`);
+  }
+}
+
+export { normalizeURL, getUrlsFromHtml, crawlPage };
