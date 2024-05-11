@@ -1,4 +1,5 @@
 import { crawlPage } from "./crawl.js";
+import { printReport } from "./report.js";
 
 async function main() {
   const numberOfParams = process.argv.length - 2;
@@ -13,7 +14,7 @@ async function main() {
   }
 
   const pages = await crawlPage(url, url);
-  console.log(pages);
+  printReport(pages);
 }
 
 main();
